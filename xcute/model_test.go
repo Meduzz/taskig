@@ -13,12 +13,12 @@ func TestModel(t *testing.T) {
 	var worker Worker
 	var Created, Pending, Error, Done State
 	definition := &JobDefinition{
-		Type: &JobType{
+		Type: &JobType{ // TODO create helper
 			Namespace: "test",
 			Kind:      "test",
 		},
-		States: []*StatePair{
-			{
+		States: []*StatePair{ // TODO create helper
+			{ // TODO create helper
 				Start: Created,
 				End:   Pending,
 			}, {
@@ -33,9 +33,9 @@ func TestModel(t *testing.T) {
 			Error,
 		},
 	}
-	job := &Job{
+	job := &Job{ // TODO ceate helper?
 		Type: definition.Type,
-		Meta: &Meta{
+		Meta: &Meta{ // TODO create helper
 			Name: "test",
 		},
 		Start: Created,
