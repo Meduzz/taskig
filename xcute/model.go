@@ -3,7 +3,9 @@ package xcute
 import "encoding/json"
 
 type (
-	State string
+	State   string
+	JobHook string
+	Hook    string
 
 	StatePair struct {
 		Start State `json:"start"`
@@ -21,13 +23,19 @@ type (
 		Errors []State      `json:"errors"`
 	}
 
+	ParentDefinition struct {
+		Ref  JobRef  `json:"ref"`            // the parent
+		Hook JobHook `json:"hook"`           // before|after|error
+		Prio int     `json:"prio,omitempty"` // prio of this hook compared to other similar hooks
+	}
+
 	// Job defines a standard job.
 	Job struct {
-		Type   *JobType        `json:"type"`
-		Meta   *Meta           `json:"meta,omitempty"`
-		Task   json.RawMessage `json:"task"`
-		Parent *JobRef         `json:"parent,omitempty"`
-		Start  State           `json:"state"`
+		Type   *JobType          `json:"type"`
+		Meta   *Meta             `json:"meta,omitempty"`
+		Task   json.RawMessage   `json:"task"`
+		Parent *ParentDefinition `json:"parent,omitempty"`
+		Start  State             `json:"state"`
 	}
 
 	// Meta contains data that could be meaninful to the executor.
@@ -41,6 +49,7 @@ type (
 	Executor interface {
 		Schedule(*Job) (JobRef, error)
 		RegisterWorker(*JobDefinition, Worker)
+		RegisterHook(ExecutorHook, *JobType, ...Hook)
 	}
 
 	// SyncExecutorSupport allows to execute a task on the spot, requires executor with InstantSupport.
@@ -49,10 +58,25 @@ type (
 		Execute(*Job) (any, error)
 	}
 
+	ExecutorHookData struct {
+		Ref    JobRef `json:"ref"`
+		Hook   Hook   `json:"hook"` // scheduled|updated|error|success
+		Before State  `json:"before,omitempty"`
+		State  State  `json:"state"`
+		Error  string `json:"error,omitempty"`
+	}
+
+	ExecutorHook interface {
+		Hook(*ExecutorHookData) (*JobRef, error)
+	}
+
 	// A scheduler extension not tied to the scheduler...?
 	JobApi interface {
+		// Load a job by its jobref
 		Load(JobRef) (*Job, error)
-		Status(JobRef) (State, error)
+		// Fetch the state of a job by its jobref
+		State(JobRef) (State, error)
+		// Update a jobs state by its jobref
 		Update(JobRef, State) error
 	}
 
@@ -67,4 +91,15 @@ type (
 		// Work, execute the task on the spot.
 		Work(*Job) (any, error)
 	}
+)
+
+var (
+	BeforeJobHook = JobHook("before")
+	JobSucessHook = JobHook("success")
+	JobErrorHook  = JobHook("error")
+
+	ScheduledHook = Hook("scheduled")
+	UpdatedHook   = Hook("updated")
+	ErrorHook     = Hook("error")
+	SuccessHook   = Hook("success")
 )
