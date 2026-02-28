@@ -8,38 +8,41 @@ import (
 	. "github.com/Meduzz/taskig/xcute"
 )
 
+type (
+	Task struct {
+		Format  string `json:"format"`
+		Message string `json:"message"`
+	}
+)
+
 func TestModel(t *testing.T) {
 	var executor Executor
 	var worker Worker
 	var Created, Pending, Error, Done State
-	definition := &JobDefinition{
-		Type: &JobType{ // TODO create helper
-			Namespace: "test",
-			Kind:      "test",
-		},
-		States: []*StatePair{ // TODO create helper
-			{ // TODO create helper
-				Start: Created,
-				End:   Pending,
-			}, {
-				Start: Pending,
-				End:   Error,
-			}, {
-				Start: Pending,
-				End:   Done,
-			},
-		},
-		Errors: []State{
-			Error,
-		},
+	task := &Task{
+		Format:  "Hello %s!",
+		Message: "World",
 	}
-	job := &Job{ // TODO ceate helper?
-		Type: definition.Type,
-		Meta: &Meta{ // TODO create helper
-			Name: "test",
-		},
-		Start: Created,
-		Task:  json.RawMessage(`{"format":"Hello %s!","message":"World"}`),
+
+	definition := DefineJob(func(b JobDefinitionBuilder) {
+		b.Type("test", "test")
+		b.Transition(Created, Pending) // from created to pending
+		b.Transition(Pending, Error)   // from pending to error
+		b.Transition(Pending, Done)    // or from pending to done.
+		b.Error(Error)                 // mark error as error state
+	})
+
+	job, err := CreateJob(func(b JobBuilder) error {
+		b.Type("test", "test")
+		b.Meta(func(m MetaBuilder) {
+			m.Name("test")
+		})
+		b.StartState(Created)
+		return b.Task(task)
+	})
+
+	if err != nil {
+		t.Errorf("creating job threw error: %v", err)
 	}
 
 	t.Run("Fake register executor and task", func(t *testing.T) {
