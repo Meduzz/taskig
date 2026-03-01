@@ -1,10 +1,10 @@
-package xcute_test
+package taskig_test
 
 import (
 	"fmt"
 	"testing"
 
-	. "github.com/Meduzz/taskig/xcute"
+	. "github.com/Meduzz/taskig"
 )
 
 func TestJobRef(t *testing.T) {

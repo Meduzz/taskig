@@ -1,4 +1,4 @@
-package xcute
+package taskig
 
 func DefineJob(cb func(JobDefinitionBuilder)) *JobDefinition {
 	def := &JobDefinition{}

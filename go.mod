@@ -2,4 +2,9 @@ module github.com/Meduzz/taskig
 
 go 1.25.5
 
-require github.com/Meduzz/helper v0.0.0-20251106065132-e52127a51ad5
+require github.com/adrg/frontmatter v0.2.0
+
+require (
+	github.com/BurntSushi/toml v0.3.1 // indirect
+	gopkg.in/yaml.v2 v2.3.0 // indirect
+)
