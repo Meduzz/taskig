@@ -35,7 +35,7 @@ type (
 		Meta   *Meta             `json:"meta,omitempty"`
 		Task   json.RawMessage   `json:"task"`
 		Parent *ParentDefinition `json:"parent,omitempty"`
-		Start  State             `json:"state"`
+		State  State             `json:"state"`
 	}
 
 	// Meta contains data that could be meaninful to the executor.
@@ -48,8 +48,12 @@ type (
 
 	Executor interface {
 		Schedule(*Job) (JobRef, error)
-		RegisterWorker(*JobDefinition, Worker)
-		RegisterHook(ExecutorHook, *JobType, ...Hook)
+		RegisterWorker(*JobDefinition, Worker) error
+		// uid, hook, jobType, hooks
+		RegisterHook(string, ExecutorHook, *JobType, ...Hook) error
+		DeregisterWorker(*JobDefinition) error
+		// uid
+		DeregisterHook(string) error
 	}
 
 	// SyncExecutorSupport allows to execute a task on the spot, requires executor with InstantSupport.
@@ -66,8 +70,13 @@ type (
 		Error  string `json:"error,omitempty"`
 	}
 
+	HookSpec struct {
+		JobType *JobType `json:"jobtype"`
+		Hooks   []Hook   `json:"hooks"`
+	}
+
 	ExecutorHook interface {
-		Hook(*ExecutorHookData) (*JobRef, error)
+		Hook(*ExecutorHookData) ([]JobRef, error)
 	}
 
 	// A scheduler extension not tied to the scheduler...?
@@ -95,7 +104,7 @@ type (
 
 var (
 	BeforeJobHook = JobHook("before")
-	JobSucessHook = JobHook("success")
+	JobAfterHook  = JobHook("after")
 	JobErrorHook  = JobHook("error")
 
 	ScheduledHook = Hook("scheduled")

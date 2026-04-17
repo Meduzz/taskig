@@ -73,7 +73,7 @@ func (j *jobBuilder) Meta(cb func(MetaBuilder)) {
 }
 
 func (j *jobBuilder) StartState(start State) {
-	j.job.Start = start
+	j.job.State = start
 }
 
 func (j *jobBuilder) Task(task any) error {
