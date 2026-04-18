@@ -48,12 +48,7 @@ type (
 
 	Executor interface {
 		Schedule(*Job) (JobRef, error)
-		RegisterWorker(*JobDefinition, Worker) error
-		// uid, hook, jobType, hooks
-		RegisterHook(string, ExecutorHook, *JobType, ...Hook) error
-		DeregisterWorker(*JobDefinition) error
-		// uid
-		DeregisterHook(string) error
+		Update(JobRef, State, error) error
 	}
 
 	// SyncExecutorSupport allows to execute a task on the spot, requires executor with InstantSupport.
@@ -63,30 +58,16 @@ type (
 	}
 
 	ExecutorHookData struct {
-		Ref    JobRef `json:"ref"`
-		Hook   Hook   `json:"hook"` // scheduled|updated|error|success
-		Before State  `json:"before,omitempty"`
-		State  State  `json:"state"`
-		Error  string `json:"error,omitempty"`
-	}
-
-	HookSpec struct {
-		JobType *JobType `json:"jobtype"`
-		Hooks   []Hook   `json:"hooks"`
+		Ref     JobRef   `json:"ref"`
+		JobType *JobType `json:"jobType"`
+		Hook    Hook     `json:"hook"` // scheduled|updated|error|success
+		Before  State    `json:"before,omitempty"`
+		State   State    `json:"state"`
+		Error   string   `json:"error,omitempty"`
 	}
 
 	ExecutorHook interface {
 		Hook(*ExecutorHookData) ([]JobRef, error)
-	}
-
-	// A scheduler extension not tied to the scheduler...?
-	JobApi interface {
-		// Load a job by its jobref
-		Load(JobRef) (*Job, error)
-		// Fetch the state of a job by its jobref
-		State(JobRef) (State, error)
-		// Update a jobs state by its jobref
-		Update(JobRef, State) error
 	}
 
 	Worker interface {

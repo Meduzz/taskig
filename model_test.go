@@ -17,7 +17,6 @@ type (
 
 func TestModel(t *testing.T) {
 	var executor Executor
-	var worker Worker
 	var Created, Pending, Error, Done State
 	task := &Task{
 		Format:  "Hello %s!",
@@ -45,10 +44,6 @@ func TestModel(t *testing.T) {
 		t.Errorf("creating job threw error: %v", err)
 	}
 
-	t.Run("Fake register executor and task", func(t *testing.T) {
-		executor.RegisterWorker(definition, worker)
-	})
-
 	t.Run("Fake schedule job", func(t *testing.T) {
 		ref, err := executor.Schedule(job)
 
@@ -62,16 +57,10 @@ func TestModel(t *testing.T) {
 	})
 
 	t.Run("Fake executor running a job", func(t *testing.T) {
-		var status JobApi
+		var executor Executor
 		var jobRef JobRef
 
-		job, err := status.Load(jobRef)
-
-		if err != nil {
-			t.Error(err)
-		}
-
-		err = status.Update(jobRef, Pending)
+		err = executor.Update(jobRef, Pending, nil)
 
 		if err != nil {
 			t.Error(err)
@@ -81,7 +70,7 @@ func TestModel(t *testing.T) {
 		err = json.Unmarshal(job.Task, args)
 
 		if err != nil {
-			err2 := status.Update(jobRef, Error)
+			err2 := executor.Update(jobRef, Error, err)
 
 			if err2 != nil {
 				t.Error(err, err2)
@@ -92,7 +81,7 @@ func TestModel(t *testing.T) {
 
 		fmt.Printf(args["format"], args["message"])
 
-		err = status.Update(jobRef, Done)
+		err = executor.Update(jobRef, Done, nil)
 
 		if err != nil {
 			t.Error(err)
