@@ -18,3 +18,10 @@ func (it JobRef) ID() string {
 	split1 := strings.Split(string(it), "#")
 	return split1[1]
 }
+
+func (it JobRef) JobType() *JobType {
+	return &JobType{
+		Namespace: it.Namespace(),
+		Kind:      it.Kind(),
+	}
+}
